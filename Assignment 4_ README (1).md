@@ -1,56 +1,97 @@
-# Objectives
+# Commonsense Validation and Explanation (ComVE) - SubTasks A, B, and C
 
-The learning objectives of this assignment are to:
+This repository contains implementations for the **ComVE shared task** (SemEval-2020) focused on commonsense validation and explanation. The task consists of three subtasks:
 
-1. combine and pre-process two input texts for a text maching problem
-2. combine and pre-process a context with several possible answers for a multiple choice problem
-3. pre-trained language models for both tasks
+1. **SubTask A:** Given two statements, identify which one does not make sense.
+2. **SubTask B:** Provide a reason why a given nonsensical statement is against commonsense, choosing from three options.
+3. **SubTask C:** Generate a reason why a given nonsensical statement does not make sense.
 
-Graduate students will also acquire skills to implement an end-to-end solution based on pre-trained models for a sequence-to-sequence problem.
+The repository uses pre-trained language models like **RoBERTa** and **BART** from the Hugging Face Transformers library.
 
-# Setup your environment and prepare data
+---
 
-First, carefully follow the *General Instructions for Programming Assignments*.
+## SubTask A: Identifying Nonsensical Statements
+### Problem
+Given two statements, identify the nonsensical one.
+- Example:
+  - **Statement 1:** He put a turkey into the fridge.
+  - **Statement 2:** He put an elephant into the fridge.
 
-To install the libraries required for this assignment run:
+  The nonsensical statement is **Statement 2**.
 
-    pip install -r requirements.txt
+### Approach
+We framed this as a binary text classification problem using the **RoBERTa** model:
+- Input: Two statements.
+- Output: A label (0 or 1) indicating which statement is nonsensical.
 
-or in case you work with macOS:
+### Implementation
+1. **Pre-trained Model:** `roberta-base` or `roberta-large`.
+2. **Tokenizer:** Tokenizes input pairs and truncates sequences.
+3. **Trainer API:** Used for fine-tuning the model with `Trainer` from Hugging Face.
 
-    pip install -r requirements-macos.txt
+### Evaluation
+The performance is evaluated using **accuracy**:
+- Partial training: ~49% accuracy.
+- Full training: ~92.9% accuracy.
 
-Clone the MeasEval repository:
+---
 
-    git clone https://github.com/wangcunxiang/SemEval2020-Task4-Commonsense-Validation-and-Explanation.git SemEval2020-Task4-Data
+## SubTask B: Reason Selection
+### Problem
+Given a nonsensical statement and three potential reasons, select the correct one.
+- Example:
+  - **Statement:** He put an elephant into the fridge.
+  - **Options:**
+    - Reason A: An elephant is much bigger than a fridge.
+    - Reason B: Elephants are usually white while fridges are usually white.
+    - Reason C: An elephant cannot eat a fridge.
+  - The correct answer is **Reason A**.
 
-# Grading
+### Approach
+We modeled this as a multiple-choice problem using **RoBERTa**:
+- Input: Nonsensical statement + candidate reasons.
+- Output: The index of the correct reason.
 
-This repository includes a set of tests for the exercises in `pretrainedlmA.ipynb` and `pretrainedlmB.ipynb` that all students must complete. They can be run with:
+### Implementation
+1. **Pre-trained Model:** `roberta-base` or `roberta-large`.
+2. **Data Collator:** Custom data collator for multiple-choice problems.
+3. **Trainer API:** Fine-tuned using the Hugging Face `Trainer`.
 
-    pytest test.py
+### Evaluation
+The performance is evaluated using **accuracy**:
+- Partial training: ~52% accuracy.
+- Full training: ~92.8% accuracy.
 
-The grading distribution for this assignment is listed below:
-- test_load_model_a = 10%
-- test_preprocess_data_a = 10%
-- test_create_training_arguments_a = 10%
-- test_create_trainer_a = 10%
-- test_make_predictions_a = 10%
-- test_load_model_b = 10%
-- test_preprocess_data_b = 10%
-- test_create_training_arguments_b = 10%
-- test_create_trainer_b = 10%
-- test_make_predictions_b = 10%
+---
 
-Graduate students must also complete the additional set of exercises in `pretrainedlmC.ipynb`. To run the tests for the graduate studen assignment, use the command:
+## SubTask C: Reason Generation
+### Problem
+Generate a valid explanation for why a given nonsensical statement does not make sense.
+- Example:
+  - **Statement:** He put an elephant into the fridge.
+  - **Generated Reason:** An elephant is much bigger than a fridge.
 
-    pytest test_grads.py
+### Approach
+We modeled this as a sequence-to-sequence problem using **BART**:
+- Input: Nonsensical statement.
+- Output: Generated reason.
 
-The grading distribution for this graduate student assignment is listed below:
-- test_load_model_c = 16%
-- test_load_data_c = 10%
-- test_preprocess_data_c = 16%
-- test_create_training_arguments_c = 16%
-- test_create_trainer_c = 16%
-- test_make_predictions_c = 16%
-- test_evaluate_c = 10%
+### Implementation
+1. **Pre-trained Model:** `facebook/bart-base` or `facebook/bart-large`.
+2. **Tokenizer:** Tokenizes the input and target sequences.
+3. **Trainer API:** Fine-tuned using `Seq2SeqTrainer` from Hugging Face.
+
+### Evaluation
+The performance is evaluated using **BLEU** and **ROUGE** metrics:
+- Partial training: BLEU ~0.216, ROUGE ~0.446.
+- Full training: BLEU ~0.228, ROUGE ~0.461.
+
+---
+
+## Setup and Usage
+
+### Prerequisites
+- Python 3.7+
+- Required libraries:
+  ```bash
+  pip install transformers datasets evaluate sacrebleu rouge
